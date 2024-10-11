@@ -27,7 +27,7 @@ and provides endpoints to retrieve upcoming events within the next 24 hours.
 
 1. **Clone the Repository**:
     ```bash
-    git clone https://github.com/yourusername/event-reminder-api.git
+    git clone https://github.com/gorkemye/event-reminder.git
     cd event-reminder-api
     ```
 

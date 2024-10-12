@@ -55,7 +55,6 @@ class EventViewSet(viewsets.ModelViewSet):
 
         end_time = now + datetime.timedelta(hours=next_hours)
 
-        # Base query for upcoming events
         upcoming_events = Event.objects.filter(
             Q(event_date__gt=now.date()) |
             Q(event_date=now.date(), event_time__gte=now.time())
@@ -64,15 +63,12 @@ class EventViewSet(viewsets.ModelViewSet):
             Q(event_date=end_time.date(), event_time__lte=end_time.time())
         )
 
-        # Filter by category if provided
         if category:
             upcoming_events = upcoming_events.filter(category=category)
 
-        # Exclude canceled events if `show_canceled` is False
         if not show_canceled:
             upcoming_events = upcoming_events.exclude(is_canceled=True)
 
-        # Order by event date and time
         upcoming_events = upcoming_events.order_by('event_date', 'event_time')
 
         serializer = self.get_serializer(upcoming_events, many=True)

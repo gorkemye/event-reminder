@@ -8,7 +8,7 @@ The **Event Reminder API** is a RESTful backend service built using Django and D
 ### Features
 
 - **Event Management**: Create, read, update, and delete event reminders.
-- **Upcoming Events**: Retrieve upcoming events dynamically for any specified timeframe.
+- **Upcoming Events**: Retrieve upcoming events dynamically for any specified timeframe. You can also filter events by category and choose whether to include canceled events.
 - **Categorization**: Filter events by category.
 - **Cancel Events**: Soft delete events by marking them as canceled.
 - **Personalized Reminder Timings**: Set reminders for events with customizable times.

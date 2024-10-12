@@ -58,6 +58,7 @@ The **Event Reminder API** is a RESTful backend service built using Django and D
 4. **Run Migrations**:
     ```bash
     python manage.py makemigrations
+    python manage.py makemigrations events
     python manage.py migrate
     ```
 

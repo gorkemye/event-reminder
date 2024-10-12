@@ -1,71 +1,28 @@
 {
 	"info": {
-		"_postman_id": "dfbb93be-2c17-41e2-8862-478e6b4ed1e1",
+		"_postman_id": "73b6fd30-2714-4aa3-b20b-99dd413a3a1c",
 		"name": "Event Reminder API",
-		"description": "Collection to test Event Reminder API including CRUD operations and custom endpoints like reminder and category-based filters.",
+		"description": "Postman collection for Event Reminder API with all endpoints.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14876429"
 	},
 	"item": [
 		{
-			"name": "Get All Events",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/api/events",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"api",
-						"events"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Specific Event",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/api/events/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"api",
-						"events",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Create New Event",
+			"name": "Create Event",
 			"request": {
 				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"event_title\": \"New Event Title\",\n    \"event_description\": \"This is a description of the new event.\",\n    \"event_date\": \"2024-10-20\",\n    \"event_time\": \"10:00:00\",\n    \"event_category\": \"Work\",\n    \"event_reminder_time\": \"09:30:00\"\n}"
+					"raw": "{\n        \"category\": \"Finance\",\n        \"title\": \"Team Building Activity\",\n        \"description\": \"Improve your guitar skills in this practice session.\",\n        \"event_date\": \"2024-10-12\",\n        \"event_time\": \"17:15:00\",\n        \"is_canceled\": true,\n        \"reminder_settings\": {\n            \"reminder_time\": \"2024-10-12T08:41:00+03:00\",\n            \"notification_methods\": [\n                \"Email\"\n            ],\n            \"reminder_note\": \"Reminder for Team Building Activity\"\n        }\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8000/api/events/",
-					"protocol": "http",
+					"raw": "localhost:8000/api/events/",
 					"host": [
 						"localhost"
 					],
@@ -75,28 +32,38 @@
 						"events",
 						""
 					]
-				}
+				},
+				"description": "Create a new event."
 			},
 			"response": []
 		},
 		{
-			"name": "Update Existing Event",
+			"name": "Retrieve All Events",
 			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"event_title\": \"Updated Event Title\",\n    \"event_description\": \"Updated description for this event.\",\n    \"event_date\": \"2024-10-21\",\n    \"event_time\": \"15:00:00\",\n    \"event_category\": \"Personal\",\n    \"event_reminder_time\": \"14:30:00\"\n}"
-				},
+				"method": "GET",
+				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/events/1",
-					"protocol": "http",
+					"raw": "localhost:8000/api/events",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"events"
+					]
+				},
+				"description": "Retrieve all events."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Event by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/events/1",
 					"host": [
 						"localhost"
 					],
@@ -105,6 +72,37 @@
 						"api",
 						"events",
 						"1"
+					]
+				},
+				"description": "Retrieve event details by ID."
+			},
+			"response": []
+		},
+		{
+			"name": "Update Event",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"category\": \"Personal\",\r\n    \"title\": \"Updated Event\",\r\n    \"description\": \"Updated description.\",\r\n    \"event_date\": \"2024-10-21\",\r\n    \"event_time\": \"15:00:00\",\r\n    \"reminder_settings\": {\r\n        \"reminder_time\": \"2024-10-21T14:30:00\",\r\n        \"notification_methods\": [\r\n            \"Email\"\r\n        ],\r\n        \"reminder_note\": \"Updated reminder note.\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/api/events/1/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"events",
+						"1",
+						""
 					]
 				}
 			},
@@ -116,8 +114,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/events/1",
-					"protocol": "http",
+					"raw": "localhost:8000/api/events/1/",
 					"host": [
 						"localhost"
 					],
@@ -125,20 +122,21 @@
 					"path": [
 						"api",
 						"events",
-						"1"
+						"1",
+						""
 					]
-				}
+				},
+				"description": "Delete an event by ID."
 			},
 			"response": []
 		},
 		{
-			"name": "Get Upcoming Events (Default 24 Hours)",
+			"name": "Cancel Event",
 			"request": {
-				"method": "GET",
+				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/events/upcoming/",
-					"protocol": "http",
+					"raw": "localhost:8000/api/events/2/cancel/",
 					"host": [
 						"localhost"
 					],
@@ -146,14 +144,43 @@
 					"path": [
 						"api",
 						"events",
-						"upcoming",
+						"2",
+						"cancel",
 						""
+					]
+				},
+				"description": "Cancel an event by setting 'is_canceled' to true."
+			},
+			"response": []
+		},
+		{
+			"name": "Upcoming Events",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/events/upcoming?next_hours=24&show_canceled=true&category=",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"events",
+						"upcoming"
 					],
 					"query": [
 						{
 							"key": "next_hours",
-							"value": "24",
-							"disabled": true
+							"value": "24"
+						},
+						{
+							"key": "show_canceled",
+							"value": "true"
+						},
+						{
+							"key": "category",
+							"value": ""
 						}
 					]
 				}
@@ -161,12 +188,12 @@
 			"response": []
 		},
 		{
-			"name": "Get Events by Category",
+			"name": "Retrieve Events by Category",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/events/category/Work",
+					"raw": "http://localhost:8000/api/events/category/Other/",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -176,35 +203,31 @@
 						"api",
 						"events",
 						"category",
-						"Work"
+						"Other",
+						""
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Get Reminder Time for Specific Event",
+			"name": "Retrieve Reminder Details",
 			"request": {
 				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/events/1/reminder",
-					"protocol": "http",
+					"raw": "localhost:8000//api/events/1/reminder/",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
+						"",
 						"api",
 						"events",
-						"1",
-						"reminder"
+						"2",
+						"reminder",
+						""
 					]
 				}
 			},

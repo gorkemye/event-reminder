@@ -1,56 +1,32 @@
 import datetime
-
 from django.db import models
 from django.utils import timezone
 from multiselectfield import MultiSelectField
 
-
-class CategoryChoices(models.TextChoices):
-    """
-    Choices for the category of the event. The first value is stored in the database, the second value is displayed.
-    """
-    WORK = 'Work', 'Work'
-    PERSONAL = 'Personal', 'Personal'
-    SOCIAL = 'Social', 'Social'
-    CONCERT = 'Concert', 'Concert'
-    ENTERTAINMENT = 'Entertainment', 'Entertainment'
-    TRAVEL = 'Travel', 'Travel'
-    HEALTH = 'Health', 'Health'
-    EDUCATION = 'Education', 'Education'
-    FINANCE = 'Finance', 'Finance'
-    OTHER = 'Other', 'Other'
-
-
-class NotificationMethodsChoices(models.TextChoices):
-    EMAIL = 'Email'
-    SMS = 'SMS'
-    APP = 'In-App Notification'
-    PUSH = 'Push Notification'
+from events.constants import CategoryChoices, NotificationMethodsChoices
 
 
 class Event(models.Model):
-    event_title = models.CharField(max_length=200, help_text="Enter the title of the event.",
-                                   verbose_name="Event Title")
-    event_description = models.TextField(help_text="Enter the description of the event.",
-                                         verbose_name="Event Description")
+    """Model to handle events."""
+
+    category = models.CharField(max_length=50, choices=CategoryChoices,
+                                help_text="Select the category of the event.", verbose_name="Event Category")
+
+    title = models.CharField(max_length=200, help_text="Enter the title of the event.",
+                             verbose_name="Event Title")
+    description = models.TextField(help_text="Enter the description of the event.",
+                                   verbose_name="Event Description")
     event_date = models.DateField(help_text="Enter the date of the event.",
                                   verbose_name="Event Date")
     event_time = models.TimeField(help_text="Enter the time of the event.",
                                   verbose_name="Event Time")
-    event_category = models.CharField(max_length=50, choices=CategoryChoices,
-                                      help_text="Select the category of the event.", verbose_name="Event Category")
-    notification_methods = MultiSelectField(choices=NotificationMethodsChoices, default=NotificationMethodsChoices.SMS,
-                                            max_length=100,
-                                            help_text="Select how you want to be notified about this event.",
-                                            verbose_name="Notification Methods")
 
-    event_reminder_time = models.TimeField(null=True, blank=True,
-                                           help_text="Set a specific reminder time if different from event time.",
-                                           verbose_name="Event Reminder Time")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At",
                                       help_text="The date and time the event was created.")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At",
                                       help_text="The date and time the event was last updated.")
+    is_canceled = models.BooleanField(default=False, verbose_name="Is Canceled",
+                                      help_text="Check this box if you want a soft delete.")
 
     class Meta:
         ordering = ['event_date', 'event_time']
@@ -58,7 +34,12 @@ class Event(models.Model):
         verbose_name_plural = "All Events"
 
     def __str__(self):
-        return self.event_title
+        return self.title
+
+    def soft_delete(self):
+        """Soft delete the event by marking it as canceled."""
+        self.is_canceled = True
+        self.save()
 
     @property
     def is_upcoming(self):
@@ -70,9 +51,7 @@ class Event(models.Model):
 
 
 class UpcomingEventManager(models.Manager):
-    """
-    Custom Manager for filtering upcoming events only.
-    """
+    """Custom Manager for filtering upcoming events only."""
 
     def get_queryset(self):
         now = timezone.now()
@@ -107,7 +86,7 @@ class UpcomingEvent(Event):
         verbose_name_plural = "Upcoming Events"
 
     def __str__(self):
-        return f"Upcoming: {self.event_title} on {self.event_date} at {self.event_time}"
+        return f"Upcoming: {self.title} on {self.event_date} at {self.event_time}"
 
 
 class ExpiredEventManager(models.Manager):
@@ -133,4 +112,49 @@ class ExpiredEvent(Event):
         verbose_name_plural = "Expired Events"
 
     def __str__(self):
-        return f"Expired: {self.event_title} on {self.event_date} at {self.event_time}"
+        return f"Expired: {self.title} on {self.event_date} at {self.event_time}"
+
+
+class CanceledEventManager(models.Manager):
+    """Custom Manager for filtering soft deleted events."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_canceled=True)
+
+
+class CanceledEvent(Event):
+    """Proxy model for soft deleted events only."""
+    objects = CanceledEventManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Canceled Event"
+        verbose_name_plural = "Canceled Events"
+
+    def __str__(self):
+        return f"Canceled: {self.title} on {self.event_date} at {self.event_time}"
+
+
+class ReminderSettings(models.Model):
+    """Model to handle reminders setting for an event."""
+    event = models.OneToOneField(Event, on_delete=models.CASCADE, related_name="reminder_settings", )
+
+    notification_methods = MultiSelectField(choices=NotificationMethodsChoices, default=NotificationMethodsChoices.SMS,
+                                            max_length=100,
+                                            help_text="Select how you want to be notified about this event.")
+
+    reminder_time = models.DateTimeField(null=True, blank=True,
+                                         help_text="Set a specific reminder time if different from event time.",
+                                         verbose_name="Reminder Time",
+                                         )
+
+    reminder_note = models.TextField(null=True, blank=True,
+                                     help_text="Contextual message based on the event's category.",
+                                     verbose_name="Reminder Note")
+
+    def __str__(self):
+        return f"Reminder settings for {self.event.title}"
+
+    class Meta:
+        verbose_name = "Event Reminder Settings"
+        verbose_name_plural = "Event Reminder Settings"

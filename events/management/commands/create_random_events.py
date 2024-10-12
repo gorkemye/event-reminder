@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from events.models import Event
+from events.models import Event, ReminderSettings
 import random
 from datetime import timedelta, datetime
 
@@ -40,45 +40,47 @@ EVENT_DESCRIPTIONS = [
     "Experience the unique sounds of the indie music scene.", "Join the music album release party and meet the artists."
 ]
 
+NOTIFICATION_METHODS_CHOICES = ['Email', 'SMS', 'In-App Notification', 'Push Notification']
+
 
 class Command(BaseCommand):
     help = 'Create 50 random events within the next 10 days from today.'
 
     def handle(self, *args, **kwargs):
         today = timezone.now().date()
-        events = []
 
-        for _ in range(50):
+        for i in range(50):
             event_date = today + timedelta(days=random.randint(0, 10))
-
             event_hour = random.randint(8, 17)
             event_minute = random.choice([0, 15, 30, 45])
             event_time = datetime.strptime(f"{event_hour}:{event_minute}:00", "%H:%M:%S").time()
 
-            reminder_minutes_before = random.randint(5, 60)
-
             event_datetime = timezone.make_aware(
                 datetime.combine(event_date, event_time), timezone.get_current_timezone()
             )
+            reminder_minutes_before = random.randint(5, 60)
+            reminder_time = event_datetime - timedelta(minutes=reminder_minutes_before)
 
-            reminder_datetime = event_datetime - timedelta(minutes=reminder_minutes_before)
-
-            event_reminder_time = reminder_datetime.time()
-
-            event_title = random.choice(EVENT_TITLES)
-            event_description = random.choice(EVENT_DESCRIPTIONS)
-            event_category = random.choice(CATEGORY_CHOICES)
+            is_canceled = i >= 45
 
             event = Event(
-                event_title=event_title,
-                event_description=event_description,
+                title=random.choice(EVENT_TITLES),
+                description=random.choice(EVENT_DESCRIPTIONS),
                 event_date=event_date,
                 event_time=event_time,
-                event_category=event_category,
-                event_reminder_time=event_reminder_time
+                category=random.choice(CATEGORY_CHOICES),
+                is_canceled=is_canceled
             )
-            events.append(event)
+            event.save()
 
-        Event.objects.bulk_create(events)
+            notification_methods = random.sample(NOTIFICATION_METHODS_CHOICES, k=random.randint(1, 4))
+            reminder_settings = ReminderSettings(
+                event=event,
+                reminder_time=reminder_time,
+                notification_methods=notification_methods,
+                reminder_note=f"Reminder for {event.title}"
+            )
+            reminder_settings.save()
 
-        self.stdout.write(self.style.SUCCESS(f"Successfully created 50 random events within the next 10 days."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Successfully created 50 random events, with the last 5 marked as canceled."))

@@ -1,19 +1,32 @@
+
 # Event Reminder API
 
 ## Overview
 
-The **Event Reminder API** is a RESTful backend service built using Django and Django REST Framework. This API allows
-users to create, manage, and retrieve reminders for upcoming events. It supports CRUD operations, event categorization,
-and provides endpoints to retrieve upcoming events within the next 24 hours.
+The **Event Reminder API** is a RESTful backend service built using Django and Django REST Framework. This API enables users to create, manage, and retrieve reminders for events. It supports CRUD operations, event categorization, and allows dynamic retrieval of upcoming events for any specified timeframe. It also provides the flexibility to include or exclude canceled events.
 
 ### Features
 
 - **Event Management**: Create, read, update, and delete event reminders.
-- **Upcoming Events**: Retrieve events happening in the next 24 hours.
+- **Upcoming Events**: Retrieve upcoming events dynamically for any specified timeframe.
 - **Categorization**: Filter events by category.
-- **Personalized Reminder Timings**: Retrieve personalized reminder times for events.
-- **Proxy Models**: Separate proxy model for managing upcoming events only.
-- **Automatic Fixture Creation**: A management command to generate 50 random events within the next 10 days.
+- **Cancel Events**: Soft delete events by marking them as canceled.
+- **Personalized Reminder Timings**: Set reminders for events with customizable times.
+- **Reminder Note**: Provide personalized reminder notes.
+- **Proxy Models**: Manage upcoming, expired, and canceled events with separate models.
+- **Automatic Fixture Creation**: Populate the database with random events using a custom management command.
+
+### Endpoints
+- **Create Event**: POST `/api/events/`
+- **Retrieve All Events**: GET `/api/events/`
+- **Retrieve Event by ID**: GET `/api/events/{id}/`
+- **Update Event**: PUT `/api/events/{id}/`
+- **Delete Event**: DELETE `/api/events/{id}/`
+- **Cancel Event**: POST `/api/events/{id}/cancel/`
+- **Retrieve Upcoming Events**: GET `/api/events/upcoming/`
+- **Retrieve Events by Category**: GET `/api/events/category/{category_name}`
+- **Retrieve Reminder Details**: GET `/api/events/{id}/reminder/`
+- **Swagger Documentation**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
 
 ## Setup and Installation Instructions
 
@@ -28,7 +41,7 @@ and provides endpoints to retrieve upcoming events within the next 24 hours.
 1. **Clone the Repository**:
     ```bash
     git clone https://github.com/gorkemye/event-reminder.git
-    cd event-reminder-api
+    cd event-reminder
     ```
 
 2. **Create and Activate a Virtual Environment**:
@@ -58,248 +71,198 @@ and provides endpoints to retrieve upcoming events within the next 24 hours.
     python manage.py runserver
     ```
 
-The API will be accessible at `http://127.0.0.1:8000/api/`.
+The API will be accessible at `http://localhost:8000/api/`
 
 ### Create Sample Data
 
-To populate the database with 50 random events within the next 10 days, run the custom management command:
-
+Use the following management command to generate 50 random events for testing:
 ```bash
 python manage.py create_random_events
 ```
-
-This command will generate random event data that you can use to test the API endpoints.
 
 ## API Endpoint Documentation
 
 ### 1. Create a New Event
 
-- **Endpoint**: `/api/events/`
-- **Method**: `POST`
-- **Request Payload**:
-    ```json
-    {
-        "event_title": "Rock Concert",
-        "event_description": "Live rock concert featuring local bands.",
-        "event_date": "2024-10-15",
-        "event_time": "19:00:00",
-        "event_category": "Concert",
-        "event_reminder_time": "18:30:00"
+**Endpoint**: `/api/events/`  
+**Method**: `POST`
+
+Request Payload:
+```json
+{
+        "category": "Finance",
+        "title": "Team Building Activity",
+        "description": "Improve your guitar skills in this practice session.",
+        "event_date": "2024-10-12",
+        "event_time": "17:15:00",
+        "is_canceled": true,
+        "reminder_settings": {
+            "reminder_time": "2024-10-12T08:41:00+03:00",
+            "notification_methods": [
+                "Email"
+            ],
+            "reminder_note": "Reminder for Team Building Activity"
+        }
+}
+```
+Response:
+```json
+{
+    "id": 57,
+    "category": "Finance",
+    "title": "Team Building Activity",
+    "description": "Improve your guitar skills in this practice session.",
+    "is_upcoming": true,
+    "event_date": "2024-10-12",
+    "event_time": "17:15:00",
+    "is_canceled": true,
+    "reminder_settings": {
+        "reminder_time": "2024-10-12T08:41:00+03:00",
+        "notification_methods": [
+            "Email"
+        ],
+        "reminder_note": "Reminder for Team Building Activity"
     }
-    ```
-- **Response**:
-    ```json
-    {
-        "id": 1,
-        "event_title": "Rock Concert",
-        "event_description": "Live rock concert featuring local bands.",
-        "event_date": "2024-10-15",
-        "event_time": "19:00:00",
-        "event_category": "Concert",
-        "event_reminder_time": "18:30:00",
-        "created_at": "2024-10-10T12:00:00Z",
-        "updated_at": "2024-10-10T12:00:00Z"
-    }
-    ```
+}
+```
 
 ### 2. Retrieve All Events
 
-- **Endpoint**: `/api/events/`
-- **Method**: `GET`
-- **Response**:
-    ```json
-    [
-        {
-            "id": 1,
-            "event_title": "Rock Concert",
-            "event_description": "Live rock concert featuring local bands.",
-            "event_date": "2024-10-15",
-            "event_time": "19:00:00",
-            "event_category": "Concert",
-            "event_reminder_time": "18:30:00",
-            "created_at": "2024-10-10T12:00:00Z",
-            "updated_at": "2024-10-10T12:00:00Z"
-        },
-        ...
-    ]
-    ```
+**Endpoint**: `/api/events/`  
+**Method**: `GET`
 
-### 3. Retrieve a Specific Event
+### 3. Retrieve Event by ID
 
-- **Endpoint**: `/api/events/{id}/`
-- **Method**: `GET`
-- **Example**: `/api/events/1/`
-- **Response**:
-    ```json
+**Endpoint**: `/api/events/{id}/`  
+**Method**: `GET`
+
+Response:
+```json
+[
     {
-        "id": 1,
-        "event_title": "Rock Concert",
-        "event_description": "Live rock concert featuring local bands.",
-        "event_date": "2024-10-15",
-        "event_time": "19:00:00",
-        "event_category": "Concert",
-        "event_reminder_time": "18:30:00",
-        "created_at": "2024-10-10T12:00:00Z",
-        "updated_at": "2024-10-10T12:00:00Z"
-    }
-    ```
-
-### 4. Update an Existing Event
-
-- **Endpoint**: `/api/events/{id}/`
-- **Method**: `PUT`
-- **Request Payload**:
-    ```json
-    {
-        "event_title": "Updated Concert",
-        "event_description": "Updated description for the concert.",
-        "event_date": "2024-10-16",
-        "event_time": "20:00:00",
-        "event_category": "Entertainment",
-        "event_reminder_time": "19:30:00"
-    }
-    ```
-- **Response**:
-    ```json
-    {
-        "id": 1,
-        "event_title": "Updated Concert",
-        "event_description": "Updated description for the concert.",
-        "event_date": "2024-10-16",
-        "event_time": "20:00:00",
-        "event_category": "Entertainment",
-        "event_reminder_time": "19:30:00",
-        "created_at": "2024-10-10T12:00:00Z",
-        "updated_at": "2024-10-10T12:30:00Z"
-    }
-    ```
-
-### 5. Delete an Event
-
-- **Endpoint**: `/api/events/{id}/`
-- **Method**: `DELETE`
-- **Example**: `/api/events/1/`
-- **Response**: `204 No Content`
-
-### 6. Retrieve Upcoming Events
-
-- **Endpoint**: `/api/events/upcoming/`
-- **Example**: `/api/events/upcoming/?next_hours=24`
-- **Method**: `GET`
-- **Default**:`24 Hours`
-- **Param**:`next_hours`(int)
-    ```json
-    [
-        {
-            "id": 2,
-            "event_title": "Doctor Appointment",
-            "event_description": "Regular health checkup appointment.",
-            "event_date": "2024-10-11",
-            "event_time": "14:00:00",
-            "event_category": "Health",
-            "event_reminder_time": "13:30:00",
-            "created_at": "2024-10-10T12:00:00Z",
-            "updated_at": "2024-10-10T12:00:00Z"
+        "id": 46,
+        "category": "Finance",
+        "title": "Team Building Activity",
+        "description": "Improve your guitar skills in this practice session.",
+        "is_upcoming": false,
+        "event_date": "2024-10-12",
+        "event_time": "09:15:00",
+        "is_canceled": true,
+        "reminder_settings": {
+            "reminder_time": "2024-10-12T08:41:00+03:00",
+            "notification_methods": [
+                "Email"
+            ],
+            "reminder_note": "Reminder for Team Building Activity"
         }
-    ]
-    ```
+    }...
+]
+```
 
-### 7. Retrieve Events by Category
+### 4. Update Event
 
-- **Endpoint**: `/api/events/category/{category_name}`
-- **Method**: `GET`
-- **Example**: `/api/events/category/Concert`
-- **Response**:
-    ```json
-    [
-        {
-            "id": 1,
-            "event_title": "Rock Concert",
-            "event_description": "Live rock concert featuring local bands.",
-            "event_date": "2024-10-15",
-            "event_time": "19:00:00",
-            "event_category": "Concert",
-            "event_reminder_time": "18:30:00",
-            "created_at": "2024-10-10T12:00:00Z",
-            "updated_at": "2024-10-10T12:00:00Z"
-        }
-    ]
-    ```
+**Endpoint**: `/api/events/{id}/`  
+**Method**: `PUT`
 
-### 8. Retrieve Reminder Time for a Specific Event
-
-- **Endpoint**: `/api/events/{id}/reminder/`
-- **Method**: `GET`
-- **Example**: `/api/events/1/reminder/`
-- **Response**:
-    ```json
-    {
-        "reminder_time": "18:30:00"
+Request Payload:
+```json
+{
+    "category": "Personal",
+    "title": "Updated Event",
+    "description": "Updated description.",
+    "event_date": "2024-10-21",
+    "event_time": "15:00:00",
+    "reminder_settings": {
+        "reminder_time": "2024-10-21T14:30:00",
+        "notification_methods": ["Email"],
+        "reminder_note": "Updated reminder note."
     }
-    ```
+}
+```
 
-## Sample Queries
+### 5. Delete Event
 
-Here are some sample cURL commands to interact with the API endpoints:
+**Endpoint**: `/api/events/{id}/`  
+**Method**: `DELETE`
 
-### Create a New Event
+**Example**: `localhost:8000/api/events/1/`
 
+Response:
+```json
+{"detail":"Event successfully deleted."}
+```
+Exception:
+```json
+{"detail":"No Event matches the given query."}
+```
+
+
+### 6. Cancel Event
+
+**Endpoint**: `/api/events/{id}/cancel/`  
+**Method**: `POST`
+
+Response:
+```json
+{"detail":"Event successfully canceled."}
+```
+Exception:
+```json
+{"detail":"This event is already canceled."}
+```
+
+### 7. Retrieve Upcoming Events
+
+**Endpoint**: `/api/events/upcoming/`  
+**Method**: `GET`  
+
+Query Parameters:
+- **next_hours**: Integer, timeframe in hours (default: 24)
+- **show_canceled**: Boolean, whether to include canceled events (default: false)
+- **category**: String, filter by event category (optional)
+
+Example Request:
 ```bash
-curl -X POST http://localhost:8000/api/events/ -H "Content-Type: application/json" -d '{
-  "event_title": "Music Festival",
-  "event_description": "An exciting music festival with multiple bands.",
-  "event_date": "2024-10-17",
-  "event_time": "18:00:00",
-  "event_category": "Concert",
-  "event_reminder_time": "17:30:00"
-}'
+localhost:8000/api/events/upcoming?next_hours=24&show_canceled=true&category=Work
 ```
 
-### Get All Events
+### 8. Retrieve Events by Category
 
-```bash
-curl -X GET http://localhost:8000/api/events/
-```
+**Endpoint**: `/api/events/category/{category_name}`  
+**Method**: `GET`
 
-### Get Events by Category
+### 9. Retrieve Reminder Details
 
-```bash
-curl -X GET http://localhost:8000/api/events/category/Concert/
-```
+**Endpoint**: `/api/events/{id}/reminder/`  
+**Method**: `GET`
 
-### Get Upcoming Events
+**Example Request**: `localhost:8000/api/events/1/reminder/`
 
-```bash
-curl -X GET http://localhost:8000/api/events/upcoming/
-```
-
-### Get Reminder Time for a Specific Event
-
-```bash
-curl -X GET http://localhost:8000/api/events/1/reminder/
-```
-
-## Postman Collection Import
-
-To facilitate testing of the API, a Postman collection file has been included in the repository. You can find the
-Postman collection file at the following location:
-
-```
-PycharmProjects\event-reminder\postman_collection.json
+Response:
+```json
+{
+    "event_id": 2,
+    "event_title": "Project Planning",
+    "reminder_time": "2024-10-17T08:22:00Z",
+    "notification_methods": [
+        "Email",
+        "SMS"
+    ],
+    "reminder_note": "Reminder for Project Planning"
+}
 ```
 
 ## API Documentation with Swagger and Redoc
 
-The project includes integrated API documentation using **Swagger** and **Redoc**. You can access these interactive API
-documentation pages to explore and test the API endpoints.
+Access the interactive API documentation:
 
-### Accessing Swagger Documentation
+- **Swagger**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
+- **Redoc**: [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
 
-- **Swagger URL**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
-- Swagger provides an interactive interface where you can test all the API endpoints, view request and response formats,
-  and interact with the API directly from the browser.
+## Postman Collection
 
-### Accessing Redoc Documentation
+The Postman collection file is available for import at:
 
-- **Redoc URL**: [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
-- Redoc provides a user-friendly API documentation page with a clean and easy-to-read interface.
+```
+PycharmProjects/event-reminder/postman_collection.json
+```
